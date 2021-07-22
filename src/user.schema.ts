@@ -8,6 +8,9 @@ export class User {
   @Prop()
   _id: Types.ObjectId
 
+  @Prop()
+  username : string
+
   @Prop({ type: [{ type: Types.ObjectId, ref: 'User' }] })
   invitedUsers: Types.ObjectId[]
 

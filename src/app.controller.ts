@@ -15,4 +15,10 @@ export class AppController {
  async getFollowers() {
   return  await this.appService.getFollowers();
   }
+
+
+  @Get('clean-comments')
+  async cleanComments() {
+   return  await this.appService.cleanUserComments();
+   }
 }
