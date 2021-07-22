@@ -9,7 +9,7 @@ import { UserSchema } from './user.schema';
 
 @Module({
   imports: [
-   MongooseModule.forRoot('mongodb://localhost/netware'),
+   MongooseModule.forRoot('mongodb://localhost/test-ig'),
    MongooseModule.forFeature([{ name: 'User', schema: UserSchema }]),
    MongooseModule.forFeature([{ name: 'Request', schema: RequestSchema }]),
    MongooseModule.forFeature([{ name: 'Comment', schema: CommentSchema }]),

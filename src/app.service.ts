@@ -1,7 +1,7 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { IgApiClient } from 'instagram-private-api';
-import { sample } from 'lodash';
+import { lowerFirst, sample } from 'lodash';
 import { Model, Types } from 'mongoose';
 import { CommentDocument } from './comment.schema';
 import { IFollower } from './interface/Ifollower';
@@ -10,6 +10,7 @@ import { RequestDocument } from './request.schema';
 import { UserDocument } from './user.schema';
 const Instagram = require('instagram-web-api')
 const { username, password } = process.env
+import * as _ from "lodash"
 
 @Injectable()
 export class AppService {
@@ -27,8 +28,8 @@ export class AppService {
 
   async getFollowers(postShortCode: string = 'CRWNkkchs2x') {
     try {
-      const username = 'sohe.ibs'
-      const password = "kaka1374"
+      const username = 'hesamhesam0202'
+      const password = "hesamh15352"
       const client = new Instagram({ username, password })
       await client.login()
       console.log('user logged in...');
@@ -41,7 +42,7 @@ export class AppService {
       console.log("Request History:", reqList.length)
 
       if (reqList.length != 0) {
-        let nextCursor = await this.getNextCursor(client, postShortCode, reqList[0].cursor)
+        let nextCursor = await this.getFollowersNextCursor(client, reqList[0].cursor)
         cursor = nextCursor
       }
 
@@ -60,6 +61,9 @@ export class AppService {
         console.log("nextCursor:", cursor)
         console.log("has a next page", hasNextPage)
 
+        console.log("object is: ",collectedFollower);
+        
+
 
         for await (const follower of collectedFollower.followers) {
           let check = await this.followerModel.findOne({
@@ -76,7 +80,7 @@ export class AppService {
               username: follower.username,
               user_id: follower.user_id,
               full_name: follower.full_name,
-              profile_pic: follower.full_name
+              profile_pic: follower.profile_pic
             })
           }
         }
@@ -93,10 +97,10 @@ export class AppService {
     }
   }
 
-  async getComments(postShortCode: string = 'CRWNkkchs2x') {
+  async getComments(postShortCode: string = 'CRgPRnShKGw') {
     try {
-      const username = 'sohe.ibs'
-      const password = "kaka1374"
+      const username = 'shirin.poloo'
+      const password = "137613761376"
       const client = new Instagram({ username, password })
       await client.login()
       console.log('user logged in...');
@@ -109,7 +113,7 @@ export class AppService {
       console.log("Request History:", reqList.length)
 
       if (reqList.length != 0) {
-        let nextCursor = await this.getNextCursor(client, postShortCode, reqList[0].cursor)
+        let nextCursor = await this.getCommentsNextCursor(client, postShortCode, reqList[0].cursor)
         cursor = nextCursor
       }
 
@@ -117,7 +121,7 @@ export class AppService {
       while (hasNextPage) {
         console.log("seted cursor", cursor)
         console.log("sending request....")
-        let collectedComments = await this.sendRequest(client, postShortCode, cursor)
+        let collectedComments = await this.sendCommentRequest(client, postShortCode, cursor)
         console.log("request sended.  request count:", requestCount);
         requestCount++
 
@@ -137,7 +141,11 @@ export class AppService {
               { date: comment.date }
             ]
           })
-          if (check) {
+          console.log("is this comment imported?",check);
+          
+          if (!check) {
+            console.log('adding to database...');
+            
             await this.commentModel.create({
               _id: new Types.ObjectId(),
               user_profile: comment.owner_id,
@@ -156,19 +164,26 @@ export class AppService {
     }
     catch (err) {
       console.log(err)
+      throw new HttpException(err.message, 500)
     }
   }
 
-  async getNextCursor(client, cursor: string, postShortCode: string) {
+  async getCommentsNextCursor(client, cursor: string, postShortCode: string) {
     let incomingComments = await client.getMediaComments({ shortcode: postShortCode, first: "49", after: cursor })
     return incomingComments.page_info.end_cursor
   }
 
-  async sendRequest(client, postShortCode, cursor) {
+  async getFollowersNextCursor(client, cursor: string) {
+    const azadiGoldUser = await client.getUserByUsername({ username: 'azadi.gold' })
+    const followers = await client.getFollowers({ userId: azadiGoldUser.id, after: cursor })
+    return followers.page_info.end_cursor
+  }
+
+  async sendCommentRequest(client, postShortCode, cursor) {
     try {
       let comments: IncomingComment[] = new Array<IncomingComment>()
       let incomingComments = await client.getMediaComments({ shortcode: postShortCode, after: cursor })
-      await this.delay(30000)
+      await this.delay(_.random(20,40))
 
       for (const comment of incomingComments.edges) {
         console.log(comment);
@@ -196,8 +211,9 @@ export class AppService {
       let Infollowers: IFollower[] = new Array<IFollower>()
       const azadiGoldUser = await client.getUserByUsername({ username: 'azadi.gold' })
       const followers = await client.getFollowers({ userId: azadiGoldUser.id, after: cursor })
-      await this.delay(30000)
+      await this.delay(1000)
 
+      
       for (const user of followers.data) {
 
         Infollowers.push({
@@ -209,8 +225,9 @@ export class AppService {
         })
         console.log(`${user.username} is pushed.`)
       }
+
       return {
-        followers,
+        followers: Infollowers,
         cursor: followers.page_info.end_cursor,
         hasNextPage: followers.page_info.has_next_page
       }
@@ -224,6 +241,8 @@ export class AppService {
 
   async delay(ms) {
     // return await for better async stack trace support in case of errors.
+    console.log('delay time:', ms);
+    
     return await new Promise(resolve => setTimeout(resolve, ms));
   }
 

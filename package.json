@@ -27,6 +27,7 @@
     "@nestjs/platform-express": "^7.6.15",
     "instagram-private-api": "^1.45.1",
     "instagram-web-api": "^2.2.2",
+    "lodash": "^4.17.21",
     "mongoose": "^5.13.3",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.2",
