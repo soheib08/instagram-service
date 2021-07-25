@@ -9,19 +9,22 @@ export class AccountFollowers {
   _id: Types.ObjectId
 
   @Prop()
-  account_username: string
-
-  @Prop()
   username: string
    
   @Prop()
   user_id: string
 
   @Prop()
-  profile_pic: string
+  full_name: string
 
   @Prop()
-  full_name: string
+  bussines_username: string
+
+  @Prop({type:Object})
+  follower_obejct: Object
+
+  @Prop()
+  follow_date: number
 
 }
 export const AccountFollowersSchema = SchemaFactory.createForClass(AccountFollowers)

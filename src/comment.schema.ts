@@ -3,19 +3,30 @@ import { Document, Types } from 'mongoose'
 
 export type CommentDocument = Comment & Document
 
-@Schema()
+@Schema({timestamps:true})
 export class Comment {
   @Prop()
   _id: Types.ObjectId
 
   @Prop()
-  comment: string
+  comment_id: string
 
   @Prop()
-  user_profile : string
+  text: string
 
   @Prop()
-  date: Date
+  owner_username : string
+
+  @Prop()
+  owner_id : string
+
+  @Prop()
+  date: number
+
+  @Prop({type:Object})
+  comment_object : Object
+
+
 
 }
 export const CommentSchema = SchemaFactory.createForClass(Comment)

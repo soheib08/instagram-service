@@ -1,5 +1,8 @@
 export interface IncomingComment {
+    comment_id: string
+    owner_username: string
     owner_id: string
-    comment_value: string
-    date: Date
+    text: string
+    date: number
+    commnet_object : Object
 }

@@ -1,5 +1,6 @@
-import { Controller, Get } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { AppService } from './app.service';
+import { GetUserScore } from './dto/get-user-score';
 
 @Controller()
 export class AppController {
@@ -17,8 +18,8 @@ export class AppController {
   }
 
 
-  @Get('clean-comments')
-  async cleanComments() {
-   return  await this.appService.cleanUserComments();
+  @Post()
+  async getUserScore(@Body() getUserScoreDto: GetUserScore) {
+   return  await this.appService.calculateUserScore(getUserScoreDto.username);
    }
 }
