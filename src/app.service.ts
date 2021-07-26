@@ -46,7 +46,7 @@ export class AppService implements OnApplicationBootstrap {
       return client
     }
     catch (err) {
-console.log(err);
+      console.log(err);
 
     }
   }
@@ -376,26 +376,35 @@ console.log(err);
   async getResults() {
     let foundUsernames = await this.commentModel.distinct('owner_username')
     console.log(foundUsernames);
-    
-    
+
+
     let totalMentions = 0
     for await (const username of foundUsernames) {
       let mentions = await this.calculateUserScore(username)
       let valid_mentions = 0
       let invalid_mentions = 0
       let pending_mentions = 0
+      let valid_users = new Array<string>()
+      let inValid_users = new Array<string>()
+      let pending_users = new Array<string>()
 
       mentions.mentions.forEach(mention => {
-        if (mention.comment_status.includes(CommentStatus.isValid))
+        if (mention.comment_status.includes(CommentStatus.isValid)){
           valid_mentions++
-        else if (mention.comment_status.includes(CommentStatus.isMentionedBefore) || mention.comment_status.includes(CommentStatus.isAFollowerBefore))
+          valid_users.push(mention.mentioned_username)
+        }
+        else if (mention.comment_status.includes(CommentStatus.isMentionedBefore)
+         || mention.comment_status.includes(CommentStatus.isAFollowerBefore)){
           invalid_mentions++
+          inValid_users.push(mention.mentioned_username)
+        }
         else if (mention.comment_status.includes(CommentStatus.notFollower))
           pending_mentions++
+          pending_users.push(mention.mentioned_username)
       })
-      totalMentions += valid_mentions+invalid_mentions+pending_mentions
-      console.log("eachMention : " , valid_mentions+invalid_mentions+pending_mentions );
-      
+      totalMentions += valid_mentions + invalid_mentions + pending_mentions
+      console.log("eachMention : ", valid_mentions + invalid_mentions + pending_mentions);
+
 
       let foundUser = await this.requestModel.findOne({ username: username })
       if (!foundUser) {
@@ -417,7 +426,7 @@ console.log(err);
         })
       }
     }
-    console.log("totalMentions : " , totalMentions);
+    console.log("totalMentions : ", totalMentions);
 
     return "records updated successfully"
   }
@@ -456,7 +465,11 @@ console.log(err);
     FollowerPrivateData.relationships_followers.forEach((follower_object) => {
       if (follower_object.string_list_data[0]['value'].toString() === username.toString())
         follower_objectResult = follower_object.string_list_data[0]['timestamp']
+      else {
+        follower_objectResult = Date.now()
+      }
     })
+
     return follower_objectResult
   }
 }

@@ -21,5 +21,15 @@ export class Result {
     @Prop()
     score: number
 
+    @Prop()
+    valid_users: Array<string>
+
+    @Prop()
+    inValid_users: Array<string>
+
+    @Prop()
+    pending_users: Array<string>
+
+
 }
 export const ResultSchema = SchemaFactory.createForClass(Result)
