@@ -127,21 +127,21 @@ export class AppService implements OnApplicationBootstrap {
       let requestCount = 0
       let commentCount = 0
       let cursor: string = ''
-      let reqList = await this.requestModel.find({ $and: [{ type: "comment" }, { post_short_code: postShortCode }] }).sort({ createdAt: -1 })
+      // let reqList = await this.requestModel.find({ $and: [{ type: "comment" }, { post_short_code: postShortCode }] }).sort({ createdAt: -1 })
 
-      console.log("Request History:", reqList.length)
+      // console.log("Request History:", reqList.length)
 
-      if (reqList.length != 0) {
+      // if (reqList.length != 0) {
         //let nextCursor = await this.getCommentsNextCursor(client, reqList[0].cursor, postShortCode)
         //console.log("=======nextCursor=======", nextCursor);
-        cursor = reqList[0].cursor
-      }
+        // cursor = reqList[0].cursor
+      // }
 
 
       while (hasNextPage) {
-        console.log("seted cursor", cursor)
+        // console.log("seted cursor", cursor)
         console.log("sending request....")
-        let collectedComments = await this.sendCommentRequest(this.client, postShortCode, cursor)
+        let collectedComments = await this.sendCommentRequest(this.client, postShortCode, '')
         console.log("request sended.  request count:", requestCount);
         requestCount++
 
@@ -205,8 +205,7 @@ export class AppService implements OnApplicationBootstrap {
     try {
       let comments: IncomingComment[] = new Array<IncomingComment>()
 
-      await this.delay(_.random(2000, 10000))
-      let incomingComments = await client.getMediaComments({ shortcode: postShortCode, first: "49", after: cursor })
+      let incomingComments = await client.getMediaComments({ shortcode: postShortCode, first: "49", after: '' })
 
       console.log("=============incoming comments=============", incomingComments);
 
@@ -230,9 +229,11 @@ export class AppService implements OnApplicationBootstrap {
       } catch (e) {
         console.log(`Pointer is not array!, dont need to be converted!`);
       }
+      await this.delay(_.random(2000, 10000))
+
       return {
         comments,
-        cursor: pointer,
+        cursor: '',
         hasNextPage: incomingComments.page_info.has_next_page
       }
     }
