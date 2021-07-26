@@ -14,6 +14,12 @@ export class Request {
   @Prop()
   type: string
 
+  @Prop()
+  post_short_code: string
+
+  @Prop()
+  account_username: string
+
 }
 export const RequestSchema = SchemaFactory.createForClass(Request)
 

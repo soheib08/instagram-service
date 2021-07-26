@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { HttpException, Injectable, OnApplicationBootstrap } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { CommentDocument } from './comment.schema';
@@ -12,57 +12,78 @@ import FollowerPrivateData from './followers_data';
 import { CleanedComments, MentionDocument } from './interface/IcleandComment';
 import { AccountFollowers, AccountFollowersDocument } from './account.followers';
 import { CommentStatus, UserAllMention } from './interface/UserAllMentions';
+import { json } from 'express';
+import { ResultDocument } from './result.schema';
 
 @Injectable()
-export class AppService {
-
+export class AppService implements OnApplicationBootstrap {
+  client: any
   constructor(
     @InjectModel('Request')
     private requestModel: Model<RequestDocument>,
     @InjectModel('Comment')
     private commentModel: Model<CommentDocument>,
     @InjectModel('AccountFollower')
-    private followerModel: Model<AccountFollowersDocument>
-  ) { }
+    private followerModel: Model<AccountFollowersDocument>,
+    @InjectModel('Result')
+    private resultModel: Model<ResultDocument>
+  ) {
+  }
 
-  async getFollowers(postShortCode: string = 'CRWNkkchs2x') {
+  async onApplicationBootstrap() {
+    this.client = await this.login("jangomangoss", "kaka7701")
+  }
+
+  private async login(username, password) {
     try {
-      const username = 'jangomangoss'
-      const password = "kaka7701"
       const client = new Instagram({ username, password })
       await client.login()
-      console.log('user logged in...');
+      console.log(`user logged in. details :\n
+      username: ${username},
+      password: ${password},
+      `)
+
+      return client
+    }
+    catch (err) {
+console.log(err);
+
+    }
+  }
+  async getFollowers(account_username: string = 'azadi.gold') {
+    try {
+
 
       let hasNextPage: boolean = true
       let requestCount = 0
       let followersCount = 0
       let cursor: string = ''
-      let reqList = await this.requestModel.find({ $and: [{ createdAt: -1 }, { type: "follower" }] })
+      let reqList = await this.requestModel.find({ $and: [{ type: "follower" }, { account_username }] }).sort({ createdAt: -1 })
+
       console.log("Request History:", reqList.length)
 
       if (reqList.length != 0) {
-        let nextCursor = await this.getFollowersNextCursor(client, reqList[0].cursor)
-        cursor = nextCursor
+        // let nextCursor = await this.getFollowersNextCursor(client, reqList[0].cursor)
+        cursor = reqList[0].cursor
       }
 
       while (hasNextPage) {
         console.log("seted cursor", cursor)
         console.log("sending request....")
-        let collectedFollower = await this.sendFollowerRequest(client, cursor)
+        let collectedFollower = await this.sendFollowerRequest(this.client, account_username, cursor)
         console.log("request sended.  request count:", requestCount);
         requestCount++
 
-        await this.requestModel.create({ _id: new Types.ObjectId(), cursor: cursor, type: "follower" })
+
         cursor = collectedFollower.cursor
+        await this.requestModel.create({ _id: new Types.ObjectId(), cursor: cursor, type: "follower", account_username })
         hasNextPage = collectedFollower.hasNextPage
 
-        console.log("==================================");
-        console.log("nextCursor:", cursor)
-        console.log("has a next page", hasNextPage)
 
-        for await (const follower of collectedFollower.followers) {
+        for await (const follower of collectedFollower.followers.reverse()) {
           let check = await this.followerModel.findOne({
             $and: [
+              { bussines_username: account_username },
               { username: follower.username, },
               { user_id: follower.user_id, },
             ]
@@ -73,57 +94,60 @@ export class AppService {
               username: follower.username,
               user_id: follower.user_id,
               full_name: follower.full_name,
-              bussines_username: "azadi.gold",
+              bussines_username: account_username,
               follower_object: follower.follower_obejct,
               follow_date: this.getFollowerDateOfFollow(follower.username)
             })
             followersCount += 1
           }
         }
-        console.log(followersCount, "follower imported")
+        console.log("================next request info==================");
+        console.log("nextCursor:", cursor)
+        console.log("has a next page", hasNextPage)
+        console.log(followersCount, "followers imported from pervios requests")
         console.log("================ end of this Request Proccess ==================");
 
       }
-      return { totalAdded: followersCount }
+      return {
+        status: "successfull",
+        totalAdded: followersCount
+      }
     }
     catch (err) {
       console.log(err)
+      throw new HttpException(err.message, 500)
     }
   }
 
   async getComments(postShortCode: string = 'CRWNkkchs2x') {
     try {
-      const username = 'jangomangoss'
-      const password = "kaka7701"
-      const client = new Instagram({ username, password })
-      await client.login()
-      console.log('user logged in...');
-
       let hasNextPage: boolean = true
       let requestCount = 0
       let commentCount = 0
       let cursor: string = ''
-      let reqList = await this.requestModel.find({  type: "comment"  }).sort({ createdAt: -1 })
+      let reqList = await this.requestModel.find({ $and: [{ type: "comment" }, { post_short_code: postShortCode }] }).sort({ createdAt: -1 })
+
       console.log("Request History:", reqList.length)
 
       if (reqList.length != 0) {
-        let nextCursor = await this.getCommentsNextCursor(client, postShortCode, reqList[0].cursor)
-        cursor = nextCursor
+        //let nextCursor = await this.getCommentsNextCursor(client, reqList[0].cursor, postShortCode)
+        //console.log("=======nextCursor=======", nextCursor);
+        cursor = reqList[0].cursor
       }
 
 
       while (hasNextPage) {
         console.log("seted cursor", cursor)
         console.log("sending request....")
-        let collectedComments = await this.sendCommentRequest(client, postShortCode, cursor)
+        let collectedComments = await this.sendCommentRequest(this.client, postShortCode, cursor)
         console.log("request sended.  request count:", requestCount);
         requestCount++
 
-        await this.requestModel.create({ _id: new Types.ObjectId(), cursor: cursor, type: "comment" })
         cursor = collectedComments.cursor
+        await this.requestModel.create({ _id: new Types.ObjectId(), cursor: cursor, type: "comment", post_short_code: postShortCode })
         hasNextPage = collectedComments.hasNextPage
 
-        for await (const comment of collectedComments.comments) {
+        for await (const comment of collectedComments.comments.reverse()) {
           let check = await this.commentModel.findOne({
             comment_id: comment.comment_id
           })
@@ -131,8 +155,8 @@ export class AppService {
             await this.commentModel.create({
               _id: new Types.ObjectId(),
               comment_id: comment.comment_id,
-              owner_username: comment.owner_id,
-              owner_id: comment.owner_username,
+              owner_username: comment.owner_username,
+              owner_id: comment.owner_id,
               text: comment.text,
               comment_object: comment.commnet_object,
               date: comment.date
@@ -159,7 +183,10 @@ export class AppService {
   }
 
   async getCommentsNextCursor(client, cursor: string, postShortCode: string) {
+    console.log(`----------------------parameters------------------------------------------\n`, cursor, postShortCode);
     let incomingComments = await client.getMediaComments({ shortcode: postShortCode, first: "49", after: cursor })
+    console.log(`----------------------incomingComments------------------------------------------\n`, incomingComments);
+
     return incomingComments.page_info.end_cursor
   }
 
@@ -172,8 +199,10 @@ export class AppService {
   async sendCommentRequest(client, postShortCode, cursor) {
     try {
       let comments: IncomingComment[] = new Array<IncomingComment>()
-      let incomingComments = await client.getMediaComments({ shortcode: postShortCode, first: "49", after: cursor })
+
       await this.delay(_.random(2000, 10000))
+      let incomingComments = await client.getMediaComments({ shortcode: postShortCode, first: "49", after: cursor })
+
       console.log("=============incoming comments=============", incomingComments);
 
       for (const comment of incomingComments.edges) {
@@ -187,9 +216,18 @@ export class AppService {
           commnet_object: comment.node
         })
       }
+
+      let pointer = incomingComments.page_info.end_cursor;
+      // this will try to convert array to json stringify
+      try {
+        pointer = JSON.parse(pointer);
+        pointer = JSON.stringify(pointer);
+      } catch (e) {
+        console.log(`Pointer is not array!, dont need to be converted!`);
+      }
       return {
         comments,
-        cursor: incomingComments.page_info.end_cursor,
+        cursor: pointer,
         hasNextPage: incomingComments.page_info.has_next_page
       }
     }
@@ -198,12 +236,13 @@ export class AppService {
       throw new HttpException(err.message, 500)
     }
   }
-  async sendFollowerRequest(client, cursor) {
+  async sendFollowerRequest(client, username, cursor) {
     try {
       let Infollowers: IFollower[] = new Array<IFollower>()
-      const azadiGoldUser = await client.getUserByUsername({ username: 'azadi.gold' })
+      await this.delay(_.random(2000, 10000))
+      const azadiGoldUser = await client.getUserByUsername({ username })
       const followers = await client.getFollowers({ userId: azadiGoldUser.id, after: cursor })
-      await this.delay(_.random(20000, 40000))
+
 
       console.log("=============incoming followers=============", followers);
 
@@ -216,9 +255,17 @@ export class AppService {
           follower_obejct: user
         })
       }
+      let pointer = followers.page_info.end_cursor;
+      // this will try to convert array to json stringify
+      try {
+        pointer = JSON.parse(pointer);
+        pointer = JSON.stringify(pointer);
+      } catch (e) {
+        console.log(`Pointer is not array!, dont need to be converted!`);
+      }
       return {
         followers: Infollowers,
-        cursor: followers.page_info.end_cursor,
+        cursor: pointer,
         hasNextPage: followers.page_info.has_next_page
       }
     }
@@ -236,7 +283,7 @@ export class AppService {
 
 
   async calculateUserScore(owner_username: string) {
-    let foundUserComments = await this.commentModel.find({ owner_id: owner_username }).sort({createdAt: -1})
+    let foundUserComments = await this.commentModel.find({ owner_username }).sort({ createdAt: -1 })
     let isUserFollowPage = await this.checkUserFollowingStatus(owner_username)
     let ownerUserFollowStatus: boolean
 
@@ -250,26 +297,26 @@ export class AppService {
     let UseCleanComment = new CleanedComments()
     UseCleanComment.mentions = new Array<MentionDocument>()
     UseCleanComment.owner_username = owner_username
-    
+
     foundUserComments.forEach(comment => {
       let rawComment = comment.text
       let commentTextArray = rawComment.split(' ')
       commentTextArray.forEach(commentSubStr => {
         let check = false
         if (commentSubStr.includes('@')) {
-          if (UseCleanComment.mentions.length !=0 ) {
+          if (UseCleanComment.mentions.length != 0) {
             UseCleanComment.mentions.forEach(mention => {
-              if (commentSubStr == mention.mentioned_username  || commentSubStr == owner_username) {
+              if (commentSubStr == mention.mentioned_username || commentSubStr == owner_username) {
                 check = true
               }
             })
           }
           else {
-            if (commentSubStr == owner_username) { 
+            if (commentSubStr == owner_username) {
               check = true
             }
           }
-          if(check==false){
+          if (check == false) {
             UseCleanComment.mentions.push({ mentioned_username: commentSubStr, date: comment.date })
           }
         }
@@ -279,7 +326,7 @@ export class AppService {
 
     let allUserMentions = new Array<UserAllMention>()
     for await (const mentionedUser of UseCleanComment.mentions) {
-     
+
       let newMentionData = new UserAllMention()
       newMentionData.comment_status = new Array<CommentStatus>()
 
@@ -326,6 +373,55 @@ export class AppService {
     }
   }
 
+  async getResults() {
+    let foundUsernames = await this.commentModel.distinct('owner_username')
+    console.log(foundUsernames);
+    
+    
+    let totalMentions = 0
+    for await (const username of foundUsernames) {
+      let mentions = await this.calculateUserScore(username)
+      let valid_mentions = 0
+      let invalid_mentions = 0
+      let pending_mentions = 0
+
+      mentions.mentions.forEach(mention => {
+        if (mention.comment_status.includes(CommentStatus.isValid))
+          valid_mentions++
+        else if (mention.comment_status.includes(CommentStatus.isMentionedBefore) || mention.comment_status.includes(CommentStatus.isAFollowerBefore))
+          invalid_mentions++
+        else if (mention.comment_status.includes(CommentStatus.notFollower))
+          pending_mentions++
+      })
+      totalMentions += valid_mentions+invalid_mentions+pending_mentions
+      console.log("eachMention : " , valid_mentions+invalid_mentions+pending_mentions );
+      
+
+      let foundUser = await this.requestModel.findOne({ username: username })
+      if (!foundUser) {
+        await this.resultModel.create({
+          username: username,
+          valid_mentions,
+          invalid_mentions,
+          pending_mentions,
+          score: valid_mentions + 1
+        })
+      } else {
+
+        await this.resultModel.updateOne(foundUser._id, {
+          username: username,
+          valid_mentions,
+          invalid_mentions,
+          pending_mentions,
+          score: valid_mentions + 1
+        })
+      }
+    }
+    console.log("totalMentions : " , totalMentions);
+
+    return "records updated successfully"
+  }
+
   async checkUserMentionedBefore(username, comment_date) {
     let foundCommentsWithThisMention = await this.commentModel.find({
       text: new RegExp(`@${username}`)
@@ -342,7 +438,7 @@ export class AppService {
   }
 
   async checkUserFollowingStatus(username: string) {
-    let res = await this.followerModel.findOne({ username:username})
+    let res = await this.followerModel.findOne({ username: username })
     return res
   }
 

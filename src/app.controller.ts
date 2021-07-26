@@ -22,4 +22,9 @@ export class AppController {
   async getUserScore(@Body() getUserScoreDto: GetUserScore) {
    return  await this.appService.calculateUserScore(getUserScoreDto.username);
    }
+
+   @Get('result')
+   async getResults() {
+    return  await this.appService.getResults();
+    }
 }
