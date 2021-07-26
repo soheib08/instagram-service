@@ -31,7 +31,7 @@ export class AppService implements OnApplicationBootstrap {
   }
 
   async onApplicationBootstrap() {
-    this.client = await this.login("jangomangoss", "kaka7701")
+    this.client = await this.login("sohe.ibs", "kaka1374")
   }
 
   private async login(username, password) {
@@ -52,8 +52,6 @@ export class AppService implements OnApplicationBootstrap {
   }
   async getFollowers(account_username: string = 'azadi.gold') {
     try {
-
-
       let hasNextPage: boolean = true
       let requestCount = 0
       let followersCount = 0
@@ -70,7 +68,7 @@ export class AppService implements OnApplicationBootstrap {
       while (hasNextPage) {
         console.log("seted cursor", cursor)
         console.log("sending request....")
-        let collectedFollower = await this.sendFollowerRequest(this.client, account_username, cursor)
+        let collectedFollower = await this.sendFollowerRequest(this.client, account_username, '')
         console.log("request sended.  request count:", requestCount);
         requestCount++
 
@@ -80,7 +78,7 @@ export class AppService implements OnApplicationBootstrap {
         hasNextPage = collectedFollower.hasNextPage
 
 
-        for await (const follower of collectedFollower.followers.reverse()) {
+        for await (const follower of collectedFollower.followers) {
           let check = await this.followerModel.findOne({
             $and: [
               { bussines_username: account_username },
@@ -100,6 +98,9 @@ export class AppService implements OnApplicationBootstrap {
             })
             followersCount += 1
           }
+          else{
+            return "already updated"
+          }
         }
         console.log("================next request info==================");
         console.log("nextCursor:", cursor)
@@ -108,6 +109,7 @@ export class AppService implements OnApplicationBootstrap {
         console.log("================ end of this Request Proccess ==================");
 
       }
+
       return {
         status: "successfull",
         totalAdded: followersCount
@@ -147,7 +149,7 @@ export class AppService implements OnApplicationBootstrap {
         await this.requestModel.create({ _id: new Types.ObjectId(), cursor: cursor, type: "comment", post_short_code: postShortCode })
         hasNextPage = collectedComments.hasNextPage
 
-        for await (const comment of collectedComments.comments.reverse()) {
+        for await (const comment of collectedComments.comments) {
           let check = await this.commentModel.findOne({
             comment_id: comment.comment_id
           })
@@ -162,6 +164,9 @@ export class AppService implements OnApplicationBootstrap {
               date: comment.date
             })
             commentCount += 1
+          }
+          else{
+            return "already updated"
           }
         }
 
@@ -265,7 +270,7 @@ export class AppService implements OnApplicationBootstrap {
       }
       return {
         followers: Infollowers,
-        cursor: pointer,
+        cursor: '',
         hasNextPage: followers.page_info.has_next_page
       }
     }
@@ -414,7 +419,9 @@ export class AppService implements OnApplicationBootstrap {
           invalid_mentions,
           pending_mentions,
           score: valid_mentions + 1,
-          valid_users,inValid_users,pending_users
+          valid_users:valid_users
+          ,inValid_users:inValid_users,
+          pending_users: pending_users
         })
       } else {
         await this.resultModel.updateOne(foundUser._id, {
@@ -423,7 +430,9 @@ export class AppService implements OnApplicationBootstrap {
           invalid_mentions,
           pending_mentions,
           score: valid_mentions + 1,
-          valid_users,inValid_users,pending_users
+          valid_users:valid_users
+          ,inValid_users:inValid_users,
+          pending_users: pending_users
         })
       }
     }
@@ -472,6 +481,10 @@ export class AppService implements OnApplicationBootstrap {
     })
 
     return follower_objectResult
+  }
+
+ async getFinalResults(){
+    return await this.resultModel.find()
   }
 }
 

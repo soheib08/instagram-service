@@ -23,8 +23,13 @@ export class AppController {
    return  await this.appService.calculateUserScore(getUserScoreDto.username);
    }
 
-   @Get('result')
-   async getResults() {
-    return  await this.appService.getResults();
+   @Get('calculate-result')
+   async calculateResult() {
+    return  await this.appService.getResults()
     }
+
+    @Get('get-results')
+    async getResults() {
+     return  await this.appService.getFinalResults();
+     }
 }
