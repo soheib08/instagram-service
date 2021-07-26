@@ -405,7 +405,7 @@ export class AppService implements OnApplicationBootstrap {
       totalMentions += valid_mentions + invalid_mentions + pending_mentions
       console.log("eachMention : ", valid_mentions + invalid_mentions + pending_mentions);
 
-
+      await this.delay(_.random(500,1000))
       let foundUser = await this.requestModel.findOne({ username: username })
       if (!foundUser) {
         await this.resultModel.create({
@@ -413,16 +413,17 @@ export class AppService implements OnApplicationBootstrap {
           valid_mentions,
           invalid_mentions,
           pending_mentions,
-          score: valid_mentions + 1
+          score: valid_mentions + 1,
+          valid_users,inValid_users,pending_users
         })
       } else {
-
         await this.resultModel.updateOne(foundUser._id, {
           username: username,
           valid_mentions,
           invalid_mentions,
           pending_mentions,
-          score: valid_mentions + 1
+          score: valid_mentions + 1,
+          valid_users,inValid_users,pending_users
         })
       }
     }
