@@ -4,7 +4,7 @@ import { AccountFollowersSchema } from './account.followers';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CommentSchema } from './comment.schema';
-import { LottoryResultSchema } from './comptition.schema';
+import { LottoryResultSchema } from './LottoryResult.schema';
 import { RequestSchema } from './request.schema';
 import { ResultSchema } from './result.schema';
 

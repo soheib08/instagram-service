@@ -13,7 +13,7 @@ import { CleanedComments, MentionDocument } from './interface/IcleandComment';
 import {  AccountFollowersDocument } from './account.followers';
 import { CommentStatus, UserAllMention } from './interface/UserAllMentions';
 import { ResultDocument } from './result.schema';
-import { LottoryResultDocument } from './comptition.schema';
+import { LottoryResultDocument } from './LottoryResult.schema';
 
 @Injectable()
 export class AppService implements OnApplicationBootstrap {
