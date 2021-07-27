@@ -132,9 +132,9 @@ export class AppService implements OnApplicationBootstrap {
       // console.log("Request History:", reqList.length)
 
       // if (reqList.length != 0) {
-        //let nextCursor = await this.getCommentsNextCursor(client, reqList[0].cursor, postShortCode)
-        //console.log("=======nextCursor=======", nextCursor);
-        // cursor = reqList[0].cursor
+      //let nextCursor = await this.getCommentsNextCursor(client, reqList[0].cursor, postShortCode)
+      //console.log("=======nextCursor=======", nextCursor);
+      // cursor = reqList[0].cursor
       // }
 
 
@@ -439,6 +439,8 @@ export class AppService implements OnApplicationBootstrap {
     return "records updated successfully"
   }
 
+
+
   async checkUserMentionedBefore(username, comment_date) {
     let foundCommentsWithThisMention = await this.commentModel.find({
       text: new RegExp(`@${username}`)
@@ -524,6 +526,35 @@ export class AppService implements OnApplicationBootstrap {
       last_update: date
     }
   }
+
+  async getUserResult(username: string) {
+    let userRes = await this.resultModel.findOne({ username })
+
+    let response: ResultResponse = new ResultResponse()
+    response.users = new Array<any>()
+
+    userRes.pending_users.forEach(user => {
+      response.users.push({ userId: user, status: CommentStatus.notFollower })
+    })
+    userRes.inValid_users.forEach(user => {
+      response.users.push({ userId: user, status: CommentStatus.inValid })
+    })
+    userRes.valid_users.forEach(user => {
+      response.users.push({ userId: user, status: CommentStatus.isValid })
+    })
+
+    response.username = userRes.username,
+      response.valid_mentions = userRes.valid_mentions,
+      response.invalid_mentions = userRes.invalid_mentions,
+      response.pending_mentions = userRes.pending_mentions,
+      response.score = userRes.score
+
+    return {
+      response
+
+    }
+  }
+
 }
 
 export class ResultResponse {

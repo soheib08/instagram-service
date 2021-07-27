@@ -32,4 +32,9 @@ export class AppController {
     async getResults() {
      return  await this.appService.getFinalResults();
      }
+
+     @Post('search')
+     async getUserResults(@Body('username') username: string) {
+      return  await this.appService.getUserResult(username);
+      }
 }
