@@ -4,6 +4,7 @@ import { AccountFollowersSchema } from './account.followers';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CommentSchema } from './comment.schema';
+import { LottoryResultSchema } from './comptition.schema';
 import { RequestSchema } from './request.schema';
 import { ResultSchema } from './result.schema';
 
@@ -13,6 +14,7 @@ import { ResultSchema } from './result.schema';
     MongooseModule.forFeature([{ name: 'Request', schema: RequestSchema }]),
     MongooseModule.forFeature([{ name: 'Comment', schema: CommentSchema }]),
     MongooseModule.forFeature([{ name: 'Result', schema: ResultSchema }]),
+    MongooseModule.forFeature([{ name: 'LottoryResult', schema: LottoryResultSchema }]),
     MongooseModule.forFeature([{ name: 'AccountFollower', schema: AccountFollowersSchema }]),
   ],
   controllers: [AppController],

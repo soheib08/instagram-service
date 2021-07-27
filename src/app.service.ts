@@ -10,10 +10,10 @@ const { username, password } = process.env
 import * as _ from "lodash"
 import FollowerPrivateData from './followers_data';
 import { CleanedComments, MentionDocument } from './interface/IcleandComment';
-import { AccountFollowers, AccountFollowersDocument } from './account.followers';
+import {  AccountFollowersDocument } from './account.followers';
 import { CommentStatus, UserAllMention } from './interface/UserAllMentions';
-import { json } from 'express';
 import { ResultDocument } from './result.schema';
+import { LottoryResultDocument } from './comptition.schema';
 
 @Injectable()
 export class AppService implements OnApplicationBootstrap {
@@ -26,7 +26,9 @@ export class AppService implements OnApplicationBootstrap {
     @InjectModel('AccountFollower')
     private followerModel: Model<AccountFollowersDocument>,
     @InjectModel('Result')
-    private resultModel: Model<ResultDocument>
+    private resultModel: Model<ResultDocument>,
+    @InjectModel('LottoryResult')
+    private lotoryResultModel: Model<LottoryResultDocument>
   ) {
   }
 
@@ -553,6 +555,62 @@ export class AppService implements OnApplicationBootstrap {
       response
 
     }
+  }
+
+
+
+
+  shuffle(array) {
+    var currentIndex = array.length, randomIndex;
+
+    // While there remain elements to shuffle...
+    while (0 !== currentIndex) {
+
+      // Pick a remaining element...
+      randomIndex = Math.floor(Math.random() * currentIndex);
+      currentIndex--;
+
+      // And swap it with the current element.
+      [array[currentIndex], array[randomIndex]] = [
+        array[randomIndex], array[currentIndex]];
+    }
+
+    return array;
+  }
+
+  async getShuffleData() {
+    let comptitionArray = new Array<string>()
+    let foundUsernames = await this.resultModel.find()
+    console.log(foundUsernames);
+    let score = 0
+    for await (const user of foundUsernames) {
+      score += user.score
+      for (let index = 0; index < user.score; index++) {
+        comptitionArray.push(user.username)
+      }
+    }
+    let res =  this.shuffle(comptitionArray)
+    console.log("score is",score);
+    
+    return res
+  }
+
+
+  async addResultsToDB(){
+    await this.lotoryResultModel.deleteMany()
+    let comptitionArray = new Array<any>()
+    let foundUsernames = await this.resultModel.find().sort({ score: -1 })
+    console.log(foundUsernames);
+    let index = 1
+    for await (const user of foundUsernames) {
+      
+      for (let u = 0; u < user.score; u++) {
+        comptitionArray.push({username: user.username, index})
+        index++
+      }
+    }
+    await this.lotoryResultModel.insertMany(comptitionArray)
+    return "successfull"
   }
 
 }
