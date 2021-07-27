@@ -31,7 +31,7 @@ export class AppController {
     return await this.appService.getFinalResults();
   }
 
-  @Get('search/:id')
+  @Get('search2/:id')
   async getUserResults(@Param('id') id: string) {
     return await this.appService.getUserResult(id);
   }
