@@ -1,4 +1,3 @@
 export class GetUserScore {
-    
-    username:string
+  username: string;
 }

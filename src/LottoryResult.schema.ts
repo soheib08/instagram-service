@@ -1,16 +1,14 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
-import { Document, Types } from 'mongoose'
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document, Types } from 'mongoose';
 
-export type LottoryResultDocument = LottoryResult & Document
+export type LottoryResultDocument = LottoryResult & Document;
 
-@Schema({timestamps:true})
+@Schema({ timestamps: true })
 export class LottoryResult {
+  @Prop()
+  username: string;
 
   @Prop()
-  username: string
-
-  @Prop()
-  index: number
+  index: number;
 }
-export const LottoryResultSchema = SchemaFactory.createForClass(LottoryResult)
-
+export const LottoryResultSchema = SchemaFactory.createForClass(LottoryResult);

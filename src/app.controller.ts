@@ -1,20 +1,22 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { AppService } from './app.service';
 import { GetUserScore } from './dto/get-user-score';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(private readonly appService: AppService) { }
 
   @Get('get-comments')
   async getCommentsFromIG() {
     return await this.appService.getComments();
   }
 
+
   @Get('get-followers')
   async getFollowers() {
     return await this.appService.getFollowers();
   }
+
 
   @Post()
   async getUserScore(@Body() getUserScoreDto: GetUserScore) {
@@ -23,7 +25,7 @@ export class AppController {
 
   @Get('calculate-result')
   async calculateResult() {
-    return await this.appService.getResults();
+    return await this.appService.getResults()
   }
 
   @Get('get-results')
@@ -31,18 +33,19 @@ export class AppController {
     return await this.appService.getFinalResults();
   }
 
-  @Get('search2/:id')
-  async getUserResults(@Param('id') id: string) {
-    return await this.appService.getUserResult(id);
+  @Post('search')
+  async getUserResults(@Body('username') username: string) {
+    return await this.appService.getUserResult(username);
   }
 
   @Get('shuffle')
   async shuffle() {
-    return await this.appService.getShuffleData();
+    return await this.appService.getShuffleData()
   }
+
 
   @Get('add-lottory-result')
   async addResultDb() {
-    return await this.appService.addResultsToDB();
+    return await this.appService.addResultsToDB()
   }
 }

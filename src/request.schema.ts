@@ -1,25 +1,23 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
-import { Document, Types } from 'mongoose'
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document, Types } from 'mongoose';
 
-export type RequestDocument = Request & Document
+export type RequestDocument = Request & Document;
 
-@Schema({timestamps:true})
+@Schema({ timestamps: true })
 export class Request {
   @Prop()
-  _id: Types.ObjectId
+  _id: Types.ObjectId;
 
   @Prop()
-  cursor: string
+  cursor: string;
 
   @Prop()
-  type: string
+  type: string;
 
   @Prop()
-  post_short_code: string
+  post_short_code: string;
 
   @Prop()
-  account_username: string
-
+  account_username: string;
 }
-export const RequestSchema = SchemaFactory.createForClass(Request)
-
+export const RequestSchema = SchemaFactory.createForClass(Request);
