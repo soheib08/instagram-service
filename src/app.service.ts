@@ -531,10 +531,11 @@ export class AppService implements OnApplicationBootstrap {
 
   async getUserResult(username: string) {
     let userRes = await this.resultModel.findOne({ username })
+    let userIndexs =  await this.lotoryResultModel.find({username})
 
     let response: ResultResponse = new ResultResponse()
     response.users = new Array<any>()
-
+    response.lottory_chances_codes = new Array<string>()
     userRes.pending_users.forEach(user => {
       response.users.push({ userId: user, status: CommentStatus.notFollower })
     })
@@ -550,10 +551,11 @@ export class AppService implements OnApplicationBootstrap {
       response.invalid_mentions = userRes.invalid_mentions,
       response.pending_mentions = userRes.pending_mentions,
       response.score = userRes.score
-
+      userIndexs.forEach(index =>{
+        response.lottory_chances_codes.push(index.index.toString())
+      })
     return {
-      response
-
+      response 
     }
   }
 
@@ -622,6 +624,7 @@ export class ResultResponse {
   pending_mentions: number
   score: number
   users?: Array<any>
+  lottory_chances_codes :Array<string>
 }
 
 
