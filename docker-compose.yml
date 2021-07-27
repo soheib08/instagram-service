@@ -4,7 +4,7 @@ services:
 
   prod:
     container_name: instagram-lottery
-    image: instagram-lottery-prod:1.2.0
+    image: instagram-lottery-prod:1.5.0
     build:
       context: .
       target: production
