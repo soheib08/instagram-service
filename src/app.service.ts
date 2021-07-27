@@ -98,7 +98,7 @@ export class AppService implements OnApplicationBootstrap {
             })
             followersCount += 1
           }
-          else{
+          else {
             return "already updated"
           }
         }
@@ -165,7 +165,7 @@ export class AppService implements OnApplicationBootstrap {
             })
             commentCount += 1
           }
-          else{
+          else {
             return "already updated"
           }
         }
@@ -380,11 +380,11 @@ export class AppService implements OnApplicationBootstrap {
 
   async getResults() {
     let foundUsernames = await this.commentModel.distinct('owner_username')
-    console.log(foundUsernames);
+    console.log("total users for ranking:", foundUsernames.length);
 
 
-    let totalMentions = 0
     for await (const username of foundUsernames) {
+
       let mentions = await this.calculateUserScore(username)
       let valid_mentions = 0
       let invalid_mentions = 0
@@ -394,24 +394,23 @@ export class AppService implements OnApplicationBootstrap {
       let pending_users = new Array<string>()
 
       mentions.mentions.forEach(mention => {
-        if (mention.comment_status.includes(CommentStatus.isValid)){
+        if (mention.comment_status.includes(CommentStatus.isValid)) {
           valid_mentions++
           valid_users.push(mention.mentioned_username)
         }
         else if (mention.comment_status.includes(CommentStatus.isMentionedBefore)
-         || mention.comment_status.includes(CommentStatus.isAFollowerBefore)){
+          || mention.comment_status.includes(CommentStatus.isAFollowerBefore)) {
           invalid_mentions++
           inValid_users.push(mention.mentioned_username)
         }
-        else if (mention.comment_status.includes(CommentStatus.notFollower))
+        else if (mention.comment_status.includes(CommentStatus.notFollower)) {
           pending_mentions++
           pending_users.push(mention.mentioned_username)
+        }
       })
-      totalMentions += valid_mentions + invalid_mentions + pending_mentions
-      console.log("eachMention : ", valid_mentions + invalid_mentions + pending_mentions);
 
-      await this.delay(_.random(500,1000))
-      let foundUser = await this.requestModel.findOne({ username: username })
+      await this.delay(_.random(500, 1000))
+      let foundUser = await this.resultModel.findOne({ username: username })
       if (!foundUser) {
         await this.resultModel.create({
           username: username,
@@ -419,25 +418,23 @@ export class AppService implements OnApplicationBootstrap {
           invalid_mentions,
           pending_mentions,
           score: valid_mentions + 1,
-          valid_users:valid_users
-          ,inValid_users:inValid_users,
+          valid_users: valid_users
+          , inValid_users: inValid_users,
           pending_users: pending_users
         })
       } else {
-        await this.resultModel.updateOne(foundUser._id, {
+        await this.resultModel.updateOne({ _id: foundUser._id }, {
           username: username,
           valid_mentions,
           invalid_mentions,
           pending_mentions,
           score: valid_mentions + 1,
-          valid_users:valid_users
-          ,inValid_users:inValid_users,
+          valid_users: valid_users
+          , inValid_users: inValid_users,
           pending_users: pending_users
         })
       }
     }
-    console.log("totalMentions : ", totalMentions);
-
     return "records updated successfully"
   }
 
@@ -483,9 +480,60 @@ export class AppService implements OnApplicationBootstrap {
     return follower_objectResult
   }
 
- async getFinalResults(){
-    return await this.resultModel.find()
+  async getFinalResults() {
+
+    let results = await this.resultModel.find().sort({ score: -1 })
+    let last_update = await this.resultModel.find().sort({ updatedAt: -1 })
+    let last_create = await this.resultModel.find().sort({ createdAt: -1 })
+    let date: number
+    console.log(last_update[0]['updatedAt'])
+    console.log(last_create[0]['createdAt'])
+    if (last_update[0]['updatedAt'] >= last_create[0]['createdAt']) {
+      date = last_update[0]['updatedAt']
+    }
+    else {
+      date = last_create[0]['createdAt']
+    }
+    let finalResult = new Array<ResultResponse>()
+
+    for await (const userRes of results) {
+      let response: ResultResponse = new ResultResponse()
+      response.users = new Array<any>()
+      userRes.pending_users.forEach(user => {
+        response.users.push({ userId: user, status: CommentStatus.notFollower })
+      })
+      userRes.inValid_users.forEach(user => {
+        response.users.push({ userId: user, status: CommentStatus.inValid })
+      })
+      userRes.valid_users.forEach(user => {
+        response.users.push({ userId: user, status: CommentStatus.isValid })
+      })
+
+      response.username = userRes.username,
+        response.valid_mentions = userRes.valid_mentions,
+        response.invalid_mentions = userRes.invalid_mentions,
+        response.pending_mentions = userRes.pending_mentions,
+        response.score = userRes.score
+
+      finalResult.push(response)
+
+    }
+    return {
+      finalResult,
+      last_update: date
+    }
   }
 }
+
+export class ResultResponse {
+  username: string
+  valid_mentions: number
+  invalid_mentions: number
+  pending_mentions: number
+  score: number
+  users?: Array<any>
+}
+
+
 
 

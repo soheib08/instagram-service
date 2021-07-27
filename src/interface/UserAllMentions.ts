@@ -9,5 +9,7 @@ export enum CommentStatus {
     isMentionedBefore ="isMentionedBefore", //"this username was mentioned already before your comment",
     isAFollowerBefore = "isAFollowerBefore", //"this username was followed page before your comment",
     notFollower = "notFollower", //"this username didnt follow page yet",
-    isValid = "isValid" //"your comment is valid"
+    isValid = "isValid", //"your comment is valid"
+    inValid ="inValid (mentioned before or followed before)"
+
 }
