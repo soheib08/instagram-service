@@ -425,8 +425,6 @@ export class AppService implements OnApplicationBootstrap {
     const last_update = await this.resultModel.find().sort({ updatedAt: -1 });
     const last_create = await this.resultModel.find().sort({ createdAt: -1 });
     let date: number;
-    console.log(last_update[0]['updatedAt']);
-    console.log(last_create[0]['createdAt']);
     if (last_update[0]['updatedAt'] >= last_create[0]['createdAt']) {
       date = last_update[0]['updatedAt'];
     } else {
