@@ -8,7 +8,7 @@ import { RequestSchema } from './request.schema';
 
 @Module({
   imports: [
-   MongooseModule.forRoot('mongodb://localhost/netware'),
+   MongooseModule.forRoot('mongodb://localhost/instagram-lottry'),
    MongooseModule.forFeature([{ name: 'Request', schema: RequestSchema }]),
    MongooseModule.forFeature([{ name: 'Comment', schema: CommentSchema }]),
    MongooseModule.forFeature([{ name: 'AccountFollower', schema: AccountFollowersSchema }]),
