@@ -1,33 +1,29 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
-import { Document, Types } from 'mongoose'
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document, Types } from 'mongoose';
 
-export type CommentDocument = Comment & Document
+export type CommentDocument = Comment & Document;
 
-@Schema({timestamps:true})
+@Schema({ timestamps: true })
 export class Comment {
   @Prop()
-  _id: Types.ObjectId
+  _id: Types.ObjectId;
 
   @Prop()
-  comment_id: string
+  comment_id: string;
 
   @Prop()
-  text: string
+  text: string;
 
   @Prop()
-  owner_username : string
+  owner_username: string;
 
   @Prop()
-  owner_id : string
+  owner_id: string;
 
   @Prop()
-  date: number
+  date: number;
 
-  @Prop({type:Object})
-  comment_object : Object
-
-
-
+  @Prop({ type: Object })
+  comment_object: Object;
 }
-export const CommentSchema = SchemaFactory.createForClass(Comment)
-
+export const CommentSchema = SchemaFactory.createForClass(Comment);
