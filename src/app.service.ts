@@ -36,7 +36,8 @@ export class AppService implements OnApplicationBootstrap {
     private resultModel: Model<ResultDocument>,
     @InjectModel('LottoryResult')
     private lotoryResultModel: Model<LottoryResultDocument>,
-  ) {}
+  ) {
+  }
 
   async onApplicationBootstrap() {
     this.client = await this.login('shahriarvelayat', 'shve8864@@');
@@ -594,7 +595,7 @@ export class AppService implements OnApplicationBootstrap {
     username = username.toLowerCase();
     const userRes = await this.resultModel.findOne({ username });
     const userIndexs = await this.lotoryResultModel.find({ username });
-    if (!userRes) throw new NotFoundException('User not Found');
+    if (!userRes) return 'User not found';
     const response: ResultResponse = new ResultResponse();
     response.users = new Array<any>();
     response.lottory_chances_codes = new Array<string>();
