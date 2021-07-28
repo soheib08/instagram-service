@@ -13,7 +13,7 @@ export class Result {
 
   @Prop()
   mentions_before: number;
-  
+
   @Prop()
   followed_before: number;
 
@@ -28,7 +28,7 @@ export class Result {
 
   @Prop()
   mentions_before_users: Array<string>;
-  
+
   @Prop()
   followed_before_users: Array<string>;
 
