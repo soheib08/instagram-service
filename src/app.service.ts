@@ -1,6 +1,7 @@
 import {
   HttpException,
   Injectable,
+  NotFoundException,
   OnApplicationBootstrap,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -9,6 +10,7 @@ import { CommentDocument } from './comment.schema';
 import { IFollower } from './interface/Ifollower';
 import { IncomingComment } from './interface/IncomingComment';
 import { RequestDocument } from './request.schema';
+
 const Instagram = require('instagram-web-api');
 const { username, password } = process.env;
 import * as _ from 'lodash';
@@ -22,6 +24,7 @@ import { LottoryResultDocument } from './LottoryResult.schema';
 @Injectable()
 export class AppService implements OnApplicationBootstrap {
   client: any;
+
   constructor(
     @InjectModel('Request')
     private requestModel: Model<RequestDocument>,
@@ -54,6 +57,7 @@ export class AppService implements OnApplicationBootstrap {
       console.log(err);
     }
   }
+
   async getFollowers(account_username = 'azadi.gold') {
     try {
       let hasNextPage = true;
@@ -284,6 +288,7 @@ export class AppService implements OnApplicationBootstrap {
       throw new HttpException(err.message, 500);
     }
   }
+
   async sendFollowerRequest(client, username, cursor) {
     try {
       const Infollowers: IFollower[] = new Array<IFollower>();
@@ -322,6 +327,7 @@ export class AppService implements OnApplicationBootstrap {
       throw new HttpException(err.message, 500);
     }
   }
+
   async delay(ms) {
     // return await for better async stack trace support in case of errors.
     console.log('delay time:', ms);
@@ -585,10 +591,10 @@ export class AppService implements OnApplicationBootstrap {
   }
 
   async getUserResult(username: string) {
-    username = username.toLowerCase()
+    username = username.toLowerCase();
     const userRes = await this.resultModel.findOne({ username });
     const userIndexs = await this.lotoryResultModel.find({ username });
-
+    if (!userRes) throw new NotFoundException('User not Found');
     const response: ResultResponse = new ResultResponse();
     response.users = new Array<any>();
     response.lottory_chances_codes = new Array<string>();
@@ -669,7 +675,9 @@ export class AppService implements OnApplicationBootstrap {
   }
 
   async getResultDb() {
-    return await this.lotoryResultModel.find().select({username:1,index:1});
+    return await this.lotoryResultModel
+      .find()
+      .select({ username: 1, index: 1 });
   }
 }
 
