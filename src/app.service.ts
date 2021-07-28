@@ -36,7 +36,8 @@ export class AppService implements OnApplicationBootstrap {
   ) {}
 
   async onApplicationBootstrap() {
-    this.client = await this.login('sohe.ibs', 'kaka1374');
+    this.client = await this.login('shahriarvelayat', 'shve8864@@');
+    // this.client = null
   }
 
   private async login(username, password) {
@@ -664,6 +665,10 @@ export class AppService implements OnApplicationBootstrap {
     }
     await this.lotoryResultModel.insertMany(comptitionArray);
     return 'successfull';
+  }
+
+  async getResultDb() {
+    return await this.lotoryResultModel.find().select({username:1,index:1});
   }
 }
 
