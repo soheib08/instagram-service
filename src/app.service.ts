@@ -585,6 +585,7 @@ export class AppService implements OnApplicationBootstrap {
   }
 
   async getUserResult(username: string) {
+    username = username.toLowerCase()
     const userRes = await this.resultModel.findOne({ username });
     const userIndexs = await this.lotoryResultModel.find({ username });
 
