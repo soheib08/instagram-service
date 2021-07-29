@@ -504,7 +504,8 @@ export class AppService implements OnApplicationBootstrap {
       (response.before_mentions = userRes.mentions_before),
       (response.followed_before_mentions = userRes.followed_before),
       (response.pending_mentions = userRes.pending_mentions),
-      (response.score = userRes.score);
+      (response.last_update = userRes['updatedAt']),
+    (response.score = userRes.score);
     userIndexs.forEach((index) => {
       response.lottory_chances_codes.push(index.index.toString());
     });
@@ -574,6 +575,7 @@ export class AppService implements OnApplicationBootstrap {
 }
 
 export class ResultResponse {
+  last_update: Date;
   username: string;
   valid_mentions: number;
   followed_before_mentions: number;
