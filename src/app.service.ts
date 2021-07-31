@@ -505,7 +505,7 @@ export class AppService implements OnApplicationBootstrap {
       (response.followed_before_mentions = userRes.followed_before),
       (response.pending_mentions = userRes.pending_mentions),
       (response.last_update = userRes['updatedAt']),
-    (response.score = userRes.score);
+      (response.score = userRes.score);
     userIndexs.forEach((index) => {
       response.lottory_chances_codes.push(index.index.toString());
     });
@@ -552,16 +552,43 @@ export class AppService implements OnApplicationBootstrap {
   }
 
   async addResultsToDB() {
-    await this.lotoryResultModel.deleteMany();
+    // await this.lotoryResultModel.deleteMany();
     const comptitionArray = new Array<any>();
-    const foundUsernames = await this.resultModel.find().sort({ score: -1 });
-    console.log(foundUsernames);
+    const foundUsernames = await this.resultModel
+      .find({})
+      .sort({ score: -1 });
     let index = 1;
     for await (const user of foundUsernames) {
-      for (let u = 0; u < user.score; u++) {
-        comptitionArray.push({ username: user.username, index });
+      for (let u = 0; u < user.valid_users.length; u++) {
+        const isChanceExist = await this.lotoryResultModel
+          .findOne({
+            username: user.username,
+            tagged_user: user.valid_users[u],
+          })
+          .exec();
+        if (!isChanceExist)
+          comptitionArray.push({
+            index,
+            username: user.username,
+            tagged_user: user.valid_users[u],
+            status:"valid"
+          });
         index++;
       }
+      const isUserChanceExist = await this.lotoryResultModel.findOne({
+        username: user.username,
+        tagged_user: user.username,
+      });
+      if (!isUserChanceExist)
+        comptitionArray.push({
+          index,
+          username: user.username,
+          tagged_user: user.username,
+          status:"valid"
+
+        });
+      index++;
+
     }
     await this.lotoryResultModel.insertMany(comptitionArray);
     return 'successfull';
@@ -570,7 +597,7 @@ export class AppService implements OnApplicationBootstrap {
   async getResultDb() {
     return await this.lotoryResultModel
       .find()
-      .select({ username: 1, index: 1 });
+      .select({ username: 1,tagged_user:1, index: 1,status:1 });
   }
 }
 
