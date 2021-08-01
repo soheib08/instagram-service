@@ -556,9 +556,10 @@ export class AppService implements OnApplicationBootstrap {
     const comptitionArray = new Array<any>();
     const foundUsernames = await this.resultModel
       .find({})
-      .sort({ score: -1 });
-    let index = 1;
+      .sort({});
+    let index = 1000;
     for await (const user of foundUsernames) {
+      console.log(index)
       for (let u = 0; u < user.valid_users.length; u++) {
         const isChanceExist = await this.lotoryResultModel
           .findOne({
