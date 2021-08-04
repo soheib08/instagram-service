@@ -6,20 +6,21 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { CommentDocument } from './comment.schema';
+import { CommentDocument } from './models/comment.schema';
 import { IFollower } from './interface/Ifollower';
 import { IncomingComment } from './interface/IncomingComment';
-import { RequestDocument } from './request.schema';
 
 const Instagram = require('instagram-web-api');
 const { username, password } = process.env;
 import * as _ from 'lodash';
-import FollowerPrivateData from './followers_data';
+import FollowerPrivateData from './values/followers_data';
 import { CleanedComments, MentionDocument } from './interface/IcleandComment';
-import { AccountFollowersDocument } from './account.followers';
+import { FollowerDocument } from './models/follower.schema';
 import { CommentStatus, UserAllMention } from './interface/UserAllMentions';
-import { ResultDocument } from './result.schema';
-import { LottoryResultDocument } from './LottoryResult.schema';
+import { RequestDocument } from './models/request.schema';
+import { ResultDocument } from './models/result.schema';
+import { LottoryResultDocument } from './models/LottoryResult.schema';
+
 
 @Injectable()
 export class AppService implements OnApplicationBootstrap {
@@ -30,8 +31,8 @@ export class AppService implements OnApplicationBootstrap {
     private requestModel: Model<RequestDocument>,
     @InjectModel('Comment')
     private commentModel: Model<CommentDocument>,
-    @InjectModel('AccountFollower')
-    private followerModel: Model<AccountFollowersDocument>,
+    @InjectModel('Follower')
+    private followerModel: Model<FollowerDocument>,
     @InjectModel('Result')
     private resultModel: Model<ResultDocument>,
     @InjectModel('LottoryResult')
@@ -283,8 +284,8 @@ export class AppService implements OnApplicationBootstrap {
 
         allUserMentions.push(newMentionData);
       } else {
-        newMentionData.mentioned_username = foundAccount.username;
-        newMentionData.mentioned_user_id = foundAccount.user_id;
+        newMentionData.mentioned_username = "foundAccount.username";
+        newMentionData.mentioned_user_id = "foundAccount.instagram_user_id";
         newMentionData.page_follow_date = foundAccount.follow_date;
         newMentionData.comment_date = mentionedUser.date;
 

@@ -1,12 +1,13 @@
 import { Module, OnApplicationBootstrap } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { AccountFollowersSchema } from './account.followers';
+import { FollowerSchema } from './models/follower.schema';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { CommentSchema } from './comment.schema';
-import { LottoryResultSchema } from './LottoryResult.schema';
-import { RequestSchema } from './request.schema';
-import { ResultSchema } from './result.schema';
+import { CommentSchema } from './models/comment.schema';
+import { LottoryResultSchema } from './models/LottoryResult.schema';
+import { RequestSchema } from './models/request.schema';
+import { ResultSchema } from './models/result.schema';
+import { PostSchema } from './models/post.schema';
 
 @Module({
   imports: [
@@ -20,7 +21,10 @@ import { ResultSchema } from './result.schema';
       { name: 'LottoryResult', schema: LottoryResultSchema },
     ]),
     MongooseModule.forFeature([
-      { name: 'AccountFollower', schema: AccountFollowersSchema },
+      { name: 'Follower', schema: FollowerSchema },
+    ]),
+    MongooseModule.forFeature([
+      { name: 'Post', schema: PostSchema },
     ]),
   ],
   controllers: [AppController],

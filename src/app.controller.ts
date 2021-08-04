@@ -6,11 +6,6 @@ import { GetUserScore } from './dto/get-user-score';
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  // @Get('get-comments')
-  // async getCommentsFromIG() {
-  //   return await this.appService.getComments();
-  // }
-
   @Get('get-followers')
   async getFollowers() {
     return await this.appService.getFollowers();
@@ -50,4 +45,11 @@ export class AppController {
   async getResultDb() {
     return await this.appService.getResultDb();
   }
+  
+  // depricate code
+  // @Get('get-comments')
+  // async getCommentsFromIG() {
+  //   return await this.appService.getComments();
+  // }
+
 }
