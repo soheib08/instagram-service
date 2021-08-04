@@ -138,79 +138,7 @@ export class AppService implements OnApplicationBootstrap {
     }
   }
 
-  async getComments(postShortCode = 'CRWNkkchs2x') {
-    try {
-      let hasNextPage = true;
-      let requestCount = 0;
-      let commentCount = 0;
-      let cursor = '';
-      // let reqList = await this.requestModel.find({ $and: [{ type: "comment" }, { post_short_code: postShortCode }] }).sort({ createdAt: -1 })
-
-      // console.log("Request History:", reqList.length)
-
-      // if (reqList.length != 0) {
-      //let nextCursor = await this.getCommentsNextCursor(client, reqList[0].cursor, postShortCode)
-      //console.log("=======nextCursor=======", nextCursor);
-      // cursor = reqList[0].cursor
-      // }
-
-      while (hasNextPage) {
-        // console.log("seted cursor", cursor)
-        console.log('sending request....');
-        const collectedComments = await this.sendCommentRequest(
-          this.client,
-          postShortCode,
-          '',
-        );
-        console.log('request sended.  request count:', requestCount);
-        requestCount++;
-
-        cursor = collectedComments.cursor;
-        await this.requestModel.create({
-          _id: new Types.ObjectId(),
-          cursor: cursor,
-          type: 'comment',
-          post_short_code: postShortCode,
-        });
-        hasNextPage = collectedComments.hasNextPage;
-
-        for await (const comment of collectedComments.comments) {
-          const check = await this.commentModel.findOne({
-            comment_id: comment.comment_id,
-          });
-          if (!check) {
-            await this.commentModel.create({
-              _id: new Types.ObjectId(),
-              comment_id: comment.comment_id,
-              owner_username: comment.owner_username,
-              owner_id: comment.owner_id,
-              text: comment.text,
-              comment_object: comment.commnet_object,
-              date: comment.date,
-            });
-            commentCount += 1;
-          } else {
-            return 'already updated';
-          }
-        }
-
-        console.log('================nex request info==================');
-        console.log('nextCursor:', cursor);
-        console.log('has a next page', hasNextPage);
-        console.log(commentCount, 'comment imported from pervios requests');
-        console.log(
-          '================ End of this Request Proccess ==================',
-        );
-      }
-      return {
-        status: 'successfull',
-        totalAdded: commentCount,
-      };
-    } catch (err) {
-      console.log(err);
-      throw new HttpException(err.message, 500);
-    }
-  }
+ 
 
   async getCommentsNextCursor(client, cursor: string, postShortCode: string) {
     console.log(
@@ -242,53 +170,7 @@ export class AppService implements OnApplicationBootstrap {
     return followers.page_info.end_cursor;
   }
 
-  async sendCommentRequest(client, postShortCode, cursor) {
-    try {
-      const comments: IncomingComment[] = new Array<IncomingComment>();
-
-      const incomingComments = await client.getMediaComments({
-        shortcode: postShortCode,
-        first: '49',
-        after: '',
-      });
-
-      console.log(
-        '=============incoming comments=============',
-        incomingComments,
-      );
-
-      for (const comment of incomingComments.edges) {
-        console.log('============data Object===============:', comment);
-        comments.push({
-          comment_id: comment.node.id,
-          text: comment.node.text,
-          date: comment.node.created_at,
-          owner_id: comment.node.owner.id,
-          owner_username: comment.node.owner.username,
-          commnet_object: comment.node,
-        });
-      }
-
-      let pointer = incomingComments.page_info.end_cursor;
-      // this will try to convert array to json stringify
-      try {
-        pointer = JSON.parse(pointer);
-        pointer = JSON.stringify(pointer);
-      } catch (e) {
-        console.log(`Pointer is not array!, dont need to be converted!`);
-      }
-      await this.delay(_.random(2000, 10000));
-
-      return {
-        comments,
-        cursor: '',
-        hasNextPage: incomingComments.page_info.has_next_page,
-      };
-    } catch (err) {
-      console.log(err);
-      throw new HttpException(err.message, 500);
-    }
-  }
+  
 
   async sendFollowerRequest(client, username, cursor) {
     try {
@@ -680,6 +562,129 @@ export class AppService implements OnApplicationBootstrap {
       .find()
       .select({ username: 1, index: 1 });
   }
+
+
+  // async getComments(postShortCode = 'CRWNkkchs2x') {
+  //   try {
+  //     let hasNextPage = true;
+  //     let requestCount = 0;
+  //     let commentCount = 0;
+  //     let cursor = '';
+  //     // let reqList = await this.requestModel.find({ $and: [{ type: "comment" }, { post_short_code: postShortCode }] }).sort({ createdAt: -1 })
+
+  //     // console.log("Request History:", reqList.length)
+
+  //     // if (reqList.length != 0) {
+  //     //let nextCursor = await this.getCommentsNextCursor(client, reqList[0].cursor, postShortCode)
+  //     //console.log("=======nextCursor=======", nextCursor);
+  //     // cursor = reqList[0].cursor
+  //     // }
+
+  //     while (hasNextPage) {
+  //       // console.log("seted cursor", cursor)
+  //       console.log('sending request....');
+  //       const collectedComments = await this.sendCommentRequest(
+  //         this.client,
+  //         postShortCode,
+  //         '',
+  //       );
+  //       console.log('request sended.  request count:', requestCount);
+  //       requestCount++;
+
+  //       cursor = collectedComments.cursor;
+  //       await this.requestModel.create({
+  //         _id: new Types.ObjectId(),
+  //         cursor: cursor,
+  //         type: 'comment',
+  //         post_short_code: postShortCode,
+  //       });
+  //       hasNextPage = collectedComments.hasNextPage;
+
+  //       for await (const comment of collectedComments.comments) {
+  //         const check = await this.commentModel.findOne({
+  //           comment_id: comment.comment_id,
+  //         });
+  //         if (!check) {
+  //           await this.commentModel.create({
+  //             _id: new Types.ObjectId(),
+  //             comment_id: comment.comment_id,
+  //             owner_username: comment.owner_username,
+  //             owner_id: comment.owner_id,
+  //             text: comment.text,
+  //             comment_object: comment.commnet_object,
+  //             date: comment.date,
+  //           });
+  //           commentCount += 1;
+  //         } else {
+  //           return 'already updated';
+  //         }
+  //       }
+
+  //       console.log('================nex request info==================');
+  //       console.log('nextCursor:', cursor);
+  //       console.log('has a next page', hasNextPage);
+  //       console.log(commentCount, 'comment imported from pervios requests');
+  //       console.log(
+  //         '================ End of this Request Proccess ==================',
+  //       );
+  //     }
+  //     return {
+  //       status: 'successfull',
+  //       totalAdded: commentCount,
+  //     };
+  //   } catch (err) {
+  //     console.log(err);
+  //     throw new HttpException(err.message, 500);
+  //   }
+  // }
+
+  // async sendCommentRequest(client, postShortCode, cursor) {
+  //   try {
+  //     const comments: IncomingComment[] = new Array<IncomingComment>();
+
+  //     const incomingComments = await client.getMediaComments({
+  //       shortcode: postShortCode,
+  //       first: '49',
+  //       after: '',
+  //     });
+
+  //     console.log(
+  //       '=============incoming comments=============',
+  //       incomingComments,
+  //     );
+
+  //     for (const comment of incomingComments.edges) {
+  //       console.log('============data Object===============:', comment);
+  //       comments.push({
+  //         comment_id: comment.node.id,
+  //         text: comment.node.text,
+  //         date: comment.node.created_at,
+  //         owner_id: comment.node.owner.id,
+  //         owner_username: comment.node.owner.username,
+  //         commnet_object: comment.node,
+  //       });
+  //     }
+
+  //     let pointer = incomingComments.page_info.end_cursor;
+  //     // this will try to convert array to json stringify
+  //     try {
+  //       pointer = JSON.parse(pointer);
+  //       pointer = JSON.stringify(pointer);
+  //     } catch (e) {
+  //       console.log(`Pointer is not array!, dont need to be converted!`);
+  //     }
+  //     await this.delay(_.random(2000, 10000));
+
+  //     return {
+  //       comments,
+  //       cursor: '',
+  //       hasNextPage: incomingComments.page_info.has_next_page,
+  //     };
+  //   } catch (err) {
+  //     console.log(err);
+  //     throw new HttpException(err.message, 500);
+  //   }
+  // }
 }
 
 export class ResultResponse {
