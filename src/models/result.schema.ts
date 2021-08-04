@@ -18,9 +18,6 @@ export class Result {
   pending_mentions: number;
 
   @Prop()
-  score: number;
-
-  @Prop()
   valid_users: Array<string>;
 
   @Prop()
@@ -28,5 +25,11 @@ export class Result {
 
   @Prop()
   pending_users: Array<string>;
+
+  @Prop()
+  likes: number
+
+  @Prop()
+  score: number;
 }
 export const ResultSchema = SchemaFactory.createForClass(Result);
